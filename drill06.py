@@ -25,7 +25,7 @@ def handle_events():
 
 
 def reset_world():
-    global running, cx, cy, frame, action, mx, my, points
+    global running, cx, cy, frame, action, mx, my, points, target_exists
     running = True
     mx, my = 0, 0
     cx, cy = TUK_WIDTH // 2, TUK_HEIGHT // 2
@@ -36,13 +36,19 @@ def reset_world():
 
 
 def set_new_target_arrow():
-    global sx, sy, hx, hy, t, action, frame
-    sx, sy = cx, cy
-    # hx, hy = 50, 50
-    hx, hy = points[0]
-    t = 0.0
-    action = 1 if cx < hx else 0
-    frame = 0
+    global sx, sy, hx, hy, t, action, frame, target_exists
+    if points:
+        sx, sy = cx, cy
+        # hx, hy = 50, 50
+        hx, hy = points[0]
+        t = 0.0
+        action = 1 if cx < hx else 0
+        frame = 0
+        target_exists = True
+    else:
+        action += 2
+        frame = 0
+        target_exists = False
 
 
 def render_world():
@@ -56,16 +62,17 @@ def render_world():
 
 
 def update_world():
-    global frame, cx, cy, t
+    global frame, cx, cy, t, target_exists
     frame = (frame + 1) % 8
-
-    if t <= 1.0:
-        cx = (1 - t) * sx + t * hx
-        cy = (1 - t) * sy + t * hy
-        t += 0.001
-    else:
-        cx, cy = hx, hy
-        set_new_target_arrow()
+    if target_exists:
+        if t <= 1.0:
+            cx = (1 - t) * sx + t * hx
+            cy = (1 - t) * sy + t * hy
+            t += 0.001
+        else:  # 목표 지점에 도달 하면
+            cx, cy = hx, hy
+            del points[0]  # 목표지점에 도착해 필요 없어진 점 삭제
+            set_new_target_arrow()
 
 
 open_canvas(TUK_WIDTH, TUK_HEIGHT)
